@@ -1,0 +1,15 @@
+<div class="max-w-sm mx-auto mt-20 p-6 bg-white rounded shadow">
+    <h2 class="text-2xl font-bold mb-4">Login</h2>
+    <form (ngSubmit)="onLogin()" [formGroup]="loginForm">
+      <div class="mb-4">
+        <label class="block">Phone Number</label>
+        <input formControlName="phoneNumber" type="text" class="w-full border p-2 rounded" />
+      </div>
+      <div class="mb-4">
+        <label class="block">Password</label>
+        <input formControlName="password" type="password" class="w-full border p-2 rounded" />
+      </div>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded w-full">Login</button>
+    </form>
+  </div>
+  
