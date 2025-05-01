@@ -12,22 +12,22 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  
-loginForm = this.fb.group({
-  phoneNumber:['', Validators.required],
-  password: ['', Validators.required]
 
-})
-  constructor(private fb: FormBuilder, private router: Router, private authService:AuthService) {}
+  loginForm = this.fb.group({
+    phoneNumber: ['', Validators.required],
+    password: ['', Validators.required]
+  });
 
-  onLogin(){
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {}
+
+  onLogin() {
     const formData = this.loginForm.value as { phoneNumber: string; password: string };
 
     if (this.loginForm.valid) {
-      
       this.authService.login(formData).subscribe({
         next: (res) => {
-          localStorage.setItem('token', res.token);
+          // The access token is stored in memory, not in localStorage
+          // No need to store the token here
           this.router.navigate(['/orders']); // or dashboard route
         },
         error: () => alert('Login failed')

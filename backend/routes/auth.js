@@ -4,7 +4,7 @@ const Customer = require('../models/Customer');
 const bcrypt = require('bcryptjs');
 const jwt = require('../utils/jwt');
 
-// Register API
+// ====================== REGISTER ======================
 router.post('/register', async (req, res) => {
   const { phoneNumber, password } = req.body;
 
@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login API
+// ====================== LOGIN ======================
 router.post('/login', async (req, res) => {
   const { phoneNumber, password } = req.body;
 
@@ -44,12 +44,8 @@ router.post('/login', async (req, res) => {
 
   try {
     const customer = await Customer.findOne({ phoneNumber });
-    if (!customer) {
+    if (!customer || !customer.password) {
       return res.status(400).send('Invalid phone number or password.');
-    }
-
-    if (!customer.password) {
-      return res.status(400).send('No password set for this account.');
     }
 
     const isMatch = await bcrypt.compare(password, customer.password);
@@ -57,45 +53,66 @@ router.post('/login', async (req, res) => {
       return res.status(400).send('Invalid phone number or password.');
     }
 
-    // Generate the access and refresh tokens
-    const accessToken = jwt.generateToken(customer._id, '15m'); // 15 minutes expiration
-    const refreshToken = jwt.generateToken(customer._id, '7d'); // 7 days expiration for refresh token
+    // ✅ Generate both tokens
+    const { accessToken, refreshToken } = jwt.generateTokens(customer._id, '15m', '7d');
 
-    // Save the refresh token in the database or cache (optional)
+    // Optional: store refresh token in DB
     customer.refreshToken = refreshToken;
     await customer.save();
 
+    // After generating the refreshToken
+res.cookie('refreshToken', refreshToken, {
+  httpOnly: true,               // Ensures the cookie cannot be accessed via JavaScript
+  secure: false,                // Set to true for production when using HTTPS
+  sameSite: 'Strict',           // Controls when cookies are sent
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration time
+});
+
+    // ✅ Send access token only in JSON response
     res.status(200).json({
       message: 'Login successful!',
-      token: accessToken,
-      refreshToken: refreshToken,
+      token: accessToken
     });
+
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).send('Server error');
   }
 });
-console.log('🔄  auth.js loaded — refresh route is at POST /refresh');
 
-// Refresh Token API
+// ====================== REFRESH ======================
 router.post('/refresh', async (req, res) => {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
     return res.status(400).send('Refresh token required.');
   }
 
   try {
-    // Verify refresh token
-    const decoded = jwt.verifyToken(refreshToken, 'refresh-secret');
+    const decoded = jwt.verifyRefreshToken(refreshToken);
     if (!decoded) {
       return res.status(401).send('Invalid or expired refresh token.');
     }
 
-    // Generate a new access token
-    const newAccessToken = jwt.generateToken(decoded.userId, '15m'); // Generate a new access token
+    // ✅ Generate new tokens
+    const { accessToken, refreshToken: newRefreshToken } = jwt.generateTokens(decoded.userId, '15m', '7d');
 
-    res.status(200).json({ token: newAccessToken });
+    // Optional: update stored refreshToken
+    const customer = await Customer.findById(decoded.userId);
+    if (customer) {
+      customer.refreshToken = newRefreshToken;
+      await customer.save();
+    }
+
+    // ✅ Set new refresh token in cookie
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(200).json({ token: accessToken });
   } catch (err) {
     console.error('Refresh token error:', err);
     res.status(500).send('Server error');

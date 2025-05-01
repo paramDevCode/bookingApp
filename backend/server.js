@@ -6,9 +6,12 @@ const orderRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth'); // Import auth routes
 
 const app = express();
-
+const corsOptions = {
+  origin: 'http://localhost:4200', // Replace with the URL of your Angular frontend
+  credentials: true,               // Allow sending and receiving cookies
+};
 // Enable CORS for all origins (you can restrict it later)
-app.use(cors());
+app.use(cors(corsOptions));
 // Middleware
 app.use(express.json());
 

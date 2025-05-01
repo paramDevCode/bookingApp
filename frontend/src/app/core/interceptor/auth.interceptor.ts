@@ -11,11 +11,13 @@ export const authInterceptor: HttpInterceptorFn = (
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const token = localStorage.getItem('token');
-  let authReq = req;
+  const token = authService.getAccessToken();
+  let authReq = req.clone({
+    withCredentials: true, // Send cookies with every request
+  });
 
   if (token) {
-    authReq = req.clone({
+    authReq = authReq.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
       },
@@ -24,13 +26,13 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && authService.getRefreshToken()) {
+      if (error.status === 401) {
         console.warn('[Interceptor] Access token expired. Attempting refresh...');
 
         return authService.refreshToken().pipe(
           switchMap((res) => {
-            localStorage.setItem('token', res.token);
             const retryReq = req.clone({
+              withCredentials: true,
               setHeaders: {
                 Authorization: `Bearer ${res.token}`,
               },
@@ -39,9 +41,7 @@ export const authInterceptor: HttpInterceptorFn = (
           }),
           catchError(() => {
             console.error('[Interceptor] Refresh failed. Logging out.');
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
-            router.navigate(['/login']);
+            authService.logout();
             return throwError(() => new Error('Session expired'));
           })
         );

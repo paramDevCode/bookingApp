@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private accessToken: string | null = null;
   private isRefreshing = false;
   private tokenRefreshed = new Subject<{ token: string }>();
 
@@ -15,11 +16,14 @@ export class AuthService {
   login(data: { phoneNumber: string; password: string }) {
     return this.http.post<{ token: string; refreshToken: string }>(
       `${environment.apiUrl}/auth/login`,
-      data
+      data,
+      { withCredentials: true }  // Allow the browser to send cookies with the request
     ).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('refreshToken', res.refreshToken);
+        // Store the access token in memory
+        this.accessToken = res.token;
+
+        // Do not store refreshToken in localStorage; it's stored in cookies
       }),
       catchError((error) => {
         console.error('Login failed', error);
@@ -29,37 +33,35 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    this.accessToken = null;  // Clear the access token in memory
+    // Optionally, clear the refresh token in cookies as well by sending a request to logout
+    document.cookie = 'refreshToken=;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';  // Remove refresh token cookie
     this.router.navigate(['/login']);
   }
 
   getAccessToken(): string | null {
-    return localStorage.getItem('token');
-  }
-
-  getRefreshToken(): string | null {
-    return localStorage.getItem('refreshToken');
+    return this.accessToken;  // Return the access token from memory
   }
 
   refreshToken(): Observable<{ token: string }> {
     if (this.isRefreshing) {
-      return this.tokenRefreshed.asObservable(); // Return the refreshed token if it's already being refreshed
+      return this.tokenRefreshed.asObservable(); // Wait for ongoing refresh
     }
 
     this.isRefreshing = true;
 
-    return this.http.post<{ token: string }>(`${environment.apiUrl}/auth/refresh`, {
-      refreshToken: this.getRefreshToken()
-    }).pipe(
+    return this.http.post<{ token: string }>(
+      `${environment.apiUrl}/auth/refresh`,
+      {},
+      { withCredentials: true } // Refresh token sent via HttpOnly cookie
+    ).pipe(
       tap((res) => {
-        localStorage.setItem('token', res.token);
-        this.tokenRefreshed.next(res); // Emit the refreshed token to the waiting observables
+        this.accessToken = res.token;  // Store new access token in memory
+        this.tokenRefreshed.next(res);
         this.isRefreshing = false;
       }),
       catchError((error) => {
-        // Handle refresh token errors (e.g., token expired or invalid)
-        this.logout(); // Log the user out if refresh token fails
+        this.logout();  // Logout if refresh token fails
         console.error('Token refresh failed', error);
         return throwError(() => new Error('Session expired. Please log in again.'));
       })

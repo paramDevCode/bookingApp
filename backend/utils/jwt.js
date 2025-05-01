@@ -1,38 +1,51 @@
 const jwt = require('jsonwebtoken');
 
-// Secret keys should be kept safe and stored securely (e.g., in environment variables)
-const ACCESS_SECRET = 'your_access_secret_key';  // Change this to your actual secret key
-const REFRESH_SECRET = 'your_refresh_secret_key'; // Change this to your actual refresh secret key
+// ✅ Use environment variables for real projects (use dotenv package)
+const ACCESS_SECRET = 'your_access_secret_key';
+const REFRESH_SECRET = 'your_refresh_secret_key';
 
-// Function to generate an access token and refresh token
-const generateTokens = (userId) => {
-  const payload = { userId };
-
-  // Generate access token with 1-hour expiration
-  const accessToken = jwt.sign(payload, ACCESS_SECRET, { expiresIn: '1h' });
-
-  // Generate refresh token with 7-day expiration
-  const refreshToken = jwt.sign(payload, REFRESH_SECRET, { expiresIn: '7d' });
+/**
+ * ✅ Generate both Access and Refresh tokens
+ * @param {string} userId - The user ID to embed in the token
+ * @param {string} accessExpiry - e.g., '15m', '1h'
+ * @param {string} refreshExpiry - e.g., '7d'
+ * @returns {{ accessToken: string, refreshToken: string }}
+ */
+const generateTokens = (userId, accessExpiry = '1h', refreshExpiry = '7d') => {
+  const accessToken = jwt.sign({ userId }, ACCESS_SECRET, { expiresIn: accessExpiry });
+  const refreshToken = jwt.sign({ userId }, REFRESH_SECRET, { expiresIn: refreshExpiry });
 
   return { accessToken, refreshToken };
 };
 
-// Function to verify an access token
+/**
+ * Verify Access Token
+ * @param {string} token
+ * @returns {object|null} Decoded payload or null if invalid
+ */
 const verifyAccessToken = (token) => {
   try {
     return jwt.verify(token, ACCESS_SECRET);
   } catch (err) {
-    return null; // Token verification failed
+    return null;
   }
 };
 
-// Function to verify a refresh token
+/**
+ * Verify Refresh Token
+ * @param {string} token
+ * @returns {object|null} Decoded payload or null if invalid
+ */
 const verifyRefreshToken = (token) => {
   try {
     return jwt.verify(token, REFRESH_SECRET);
   } catch (err) {
-    return null; // Token verification failed
+    return null;
   }
 };
 
-module.exports = { generateTokens, verifyAccessToken, verifyRefreshToken };
+module.exports = {
+  generateTokens,
+  verifyAccessToken,
+  verifyRefreshToken
+};
