@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Observable, catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment'; // Make sure this path is correct
 
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<any>,
@@ -12,11 +13,14 @@ export const authInterceptor: HttpInterceptorFn = (
   const router = inject(Router);
 
   const token = authService.getAccessToken();
+
+  // Always include cookies for both dev and production
   let authReq = req.clone({
-    withCredentials: true, // Send cookies with every request
+    withCredentials: true,
   });
 
-  if (token) {
+  // In development mode, attach Authorization header manually
+  if (!environment.production && token) {
     authReq = authReq.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -33,9 +37,9 @@ export const authInterceptor: HttpInterceptorFn = (
           switchMap((res) => {
             const retryReq = req.clone({
               withCredentials: true,
-              setHeaders: {
-                Authorization: `Bearer ${res.token}`,
-              },
+              ...( !environment.production && {
+                setHeaders: { Authorization: `Bearer ${res.token}` }
+              })
             });
             return next(retryReq);
           }),

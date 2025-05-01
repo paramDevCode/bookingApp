@@ -60,13 +60,13 @@ router.post('/login', async (req, res) => {
     customer.refreshToken = refreshToken;
     await customer.save();
 
-    // After generating the refreshToken
-res.cookie('refreshToken', refreshToken, {
-  httpOnly: true,               // Ensures the cookie cannot be accessed via JavaScript
-  secure: false,                // Set to true for production when using HTTPS
-  sameSite: 'Strict',           // Controls when cookies are sent
-  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration time
-});
+    // Set refresh token in secure cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,               // Ensures the cookie cannot be accessed via JavaScript
+      secure: process.env.NODE_ENV === 'production', // Set to true for production over HTTPS
+      sameSite: 'Strict',           // Controls when cookies are sent
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration time
+    });
 
     // ✅ Send access token only in JSON response
     res.status(200).json({
@@ -97,7 +97,7 @@ router.post('/refresh', async (req, res) => {
     // ✅ Generate new tokens
     const { accessToken, refreshToken: newRefreshToken } = jwt.generateTokens(decoded.userId, '15m', '7d');
 
-    // Optional: update stored refreshToken
+    // Optional: update stored refreshToken in DB
     const customer = await Customer.findById(decoded.userId);
     if (customer) {
       customer.refreshToken = newRefreshToken;
@@ -107,7 +107,7 @@ router.post('/refresh', async (req, res) => {
     // ✅ Set new refresh token in cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
       sameSite: 'Strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
