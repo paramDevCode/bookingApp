@@ -3,12 +3,12 @@ const router = express.Router();
 const Customer = require('../models/Customer');
 const bcrypt = require('bcryptjs');
 const jwt = require('../utils/jwt');
- 
+
 // ====================== REGISTER ======================
 router.post('/register', async (req, res) => {
-  const { name, phoneNumber, password, confirmPassword } = req.body;
+  const { name, phoneNumber, email, password, confirmPassword } = req.body;
 
-  if (!name || !phoneNumber || !password || !confirmPassword) {
+  if (!name || !phoneNumber || !email || !password || !confirmPassword) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
 
@@ -28,6 +28,7 @@ router.post('/register', async (req, res) => {
     const customer = new Customer({
       name,
       phoneNumber,
+      email,
       password: hashedPassword
     });
 
@@ -37,11 +38,13 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error' });
+    console.log('Type of err.error:', typeof err.error);
+
   }
 });
 
-
 // ====================== LOGIN ======================
+ 
 router.post('/login', async (req, res) => {
   const { phoneNumber, password } = req.body;
 
@@ -84,6 +87,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ====================== REFRESH ======================
+ 
 router.post('/refresh', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 

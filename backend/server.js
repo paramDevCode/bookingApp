@@ -6,6 +6,7 @@ const orderRoutes = require('./routes/orders');
 const authRoutes = require('./routes/auth'); // Import auth routes
 
 const app = express();
+
 const corsOptions = {
   origin: 'http://localhost:4200', // Replace with the URL of your Angular frontend
   credentials: true,               // Allow sending and receiving cookies
@@ -34,3 +35,4 @@ app.get('/', (req, res) => {
 // Start the server
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server is running on port ${port}`));
+
