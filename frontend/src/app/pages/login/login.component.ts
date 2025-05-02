@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -18,20 +19,58 @@ export class LoginComponent {
     password: ['', Validators.required]
   });
 
-  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) {}
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+    private toastService: ToastService
+  ) {}
 
   onLogin() {
-    const formData = this.loginForm.value as { phoneNumber: string; password: string };
-
-    if (this.loginForm.valid) {
-      this.authService.login(formData).subscribe({
-        next: (res) => {
-          // The access token is stored in memory, not in localStorage
-          // No need to store the token here
-          this.router.navigate(['/orders']); // or dashboard route
-        },
-        error: () => alert('Login failed')
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      this.toastService.showToast({
+        message: 'Please fill in all required fields.',
+        type: 'error'
       });
+      return;
     }
+
+    const formData = this.loginForm.value as { phoneNumber: string | null; password: string | null };
+    const phoneNumber = formData.phoneNumber?.trim() || '';
+    const password = formData.password?.trim() || '';
+
+    if (!phoneNumber || !password) {
+      this.toastService.showToast({
+        message: 'Phone number and password are required.',
+        type: 'error'
+      });
+      return;
+    }
+
+    this.authService.login({ phoneNumber, password }).subscribe({
+      next: () => {
+        this.toastService.showToast({
+          message: 'Login successful!',
+          type: 'success'
+        });
+        this.router.navigate(['/orders']);
+      },
+      error: (err) => {
+        this.toastService.showToast({
+          message: err?.error?.message || 'Incorrect phone number or password.',
+          type: 'error'
+        });
+      }
+    });
+  }
+
+  isInvalid(controlName: string): boolean {
+    const control = this.loginForm.get(controlName);
+    return !!(control && control.invalid && (control.touched || control.dirty));
+  }
+
+  onRegisterRedirect(): void {
+    this.router.navigate(['/register']);
   }
 }

@@ -42,6 +42,22 @@ export class AuthService {
     );
   }
 
+  register(data: { name: string; phoneNumber: string; password: string; confirmPassword: string }) {
+    return this.http.post(
+      `${environment.apiUrl}/auth/register`,
+      data,
+      { withCredentials: true }
+    ).pipe(
+      tap(() => {
+        console.log('Registration successful');
+      }),
+      catchError((error) => {
+        console.error('Registration failed', error);
+        return throwError(() => new Error(error?.error?.message || 'Registration failed.'));
+      })
+    );
+  }
+  
   logout(): void {
     this.accessToken = null;
     this.tokenStorage.removeToken(); // Clear from localStorage/cookies

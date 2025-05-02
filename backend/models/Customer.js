@@ -1,16 +1,11 @@
-
+// models/Customer.js
 const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema({
-  phoneNumber: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
+  name: { type: String, required: true },
+  phoneNumber: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  refreshToken: { type: String }
 });
 
 const Customer = mongoose.model('Customer', customerSchema);

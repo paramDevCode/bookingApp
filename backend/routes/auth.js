@@ -3,36 +3,43 @@ const router = express.Router();
 const Customer = require('../models/Customer');
 const bcrypt = require('bcryptjs');
 const jwt = require('../utils/jwt');
-
+ 
 // ====================== REGISTER ======================
 router.post('/register', async (req, res) => {
-  const { phoneNumber, password } = req.body;
+  const { name, phoneNumber, password, confirmPassword } = req.body;
 
-  if (!phoneNumber || !password) {
-    return res.status(400).send('Phone number and password are required.');
+  if (!name || !phoneNumber || !password || !confirmPassword) {
+    return res.status(400).json({ message: 'All fields are required.' });
+  }
+
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: 'Passwords do not match.' });
   }
 
   try {
     const existingCustomer = await Customer.findOne({ phoneNumber });
     if (existingCustomer) {
-      return res.status(400).send('Customer already registered.');
+      return res.status(400).json({ message: 'Customer already registered.' });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const customer = new Customer({
+      name,
       phoneNumber,
       password: hashedPassword
     });
 
     await customer.save();
-    res.status(201).send('Customer registered successfully.');
+    res.status(201).json({ message: 'Customer registered successfully.' });
+
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).send('Server error');
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // ====================== LOGIN ======================
 router.post('/login', async (req, res) => {
@@ -53,22 +60,18 @@ router.post('/login', async (req, res) => {
       return res.status(400).send('Invalid phone number or password.');
     }
 
-    // ✅ Generate both tokens
     const { accessToken, refreshToken } = jwt.generateTokens(customer._id, '15m', '7d');
 
-    // Optional: store refresh token in DB
     customer.refreshToken = refreshToken;
     await customer.save();
 
-    // Set refresh token in secure cookie
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,               // Ensures the cookie cannot be accessed via JavaScript
-      secure: process.env.NODE_ENV === 'production', // Set to true for production over HTTPS
-      sameSite: 'Strict',           // Controls when cookies are sent
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days expiration time
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    // ✅ Send access token only in JSON response
     res.status(200).json({
       message: 'Login successful!',
       token: accessToken
@@ -94,20 +97,17 @@ router.post('/refresh', async (req, res) => {
       return res.status(401).send('Invalid or expired refresh token.');
     }
 
-    // ✅ Generate new tokens
     const { accessToken, refreshToken: newRefreshToken } = jwt.generateTokens(decoded.userId, '15m', '7d');
 
-    // Optional: update stored refreshToken in DB
     const customer = await Customer.findById(decoded.userId);
     if (customer) {
       customer.refreshToken = newRefreshToken;
       await customer.save();
     }
 
-    // ✅ Set new refresh token in cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Ensure secure cookies in production
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
