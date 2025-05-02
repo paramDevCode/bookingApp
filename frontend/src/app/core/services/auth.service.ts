@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
@@ -41,8 +41,7 @@ export class AuthService {
       })
     );
   }
-
-  register(data: { name: string; phoneNumber: string; password: string; confirmPassword: string }) {
+  register(data: { name: string; phoneNumber: string; email: string; password: string; confirmPassword: string }) {
     return this.http.post(
       `${environment.apiUrl}/auth/register`,
       data,
@@ -51,9 +50,11 @@ export class AuthService {
       tap(() => {
         console.log('Registration successful');
       }),
-      catchError((error) => {
+      catchError((error: HttpErrorResponse) => {
         console.error('Registration failed', error);
-        return throwError(() => new Error(error?.error?.message || 'Registration failed.'));
+  
+        // Instead of wrapping it with a generic Error, return the HttpErrorResponse itself
+        return throwError(() => error);  // This will keep the original HttpErrorResponse structure
       })
     );
   }
