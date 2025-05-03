@@ -47,45 +47,45 @@ router.post('/register', async (req, res) => {
  
 router.post('/login', async (req, res) => {
   const { phoneNumber, password } = req.body;
-
-  if (!phoneNumber || !password) {
+  if (!phoneNumber || !password)
     return res.status(400).send('Phone number and password are required.');
-  }
 
   try {
     const customer = await Customer.findOne({ phoneNumber });
-    if (!customer || !customer.password) {
+    if (!customer || !customer.password)
       return res.status(400).send('Invalid phone number or password.');
-    }
 
     const isMatch = await bcrypt.compare(password, customer.password);
-    if (!isMatch) {
+    if (!isMatch)
       return res.status(400).send('Invalid phone number or password.');
-    }
 
-    const { accessToken, refreshToken } = jwt.generateTokens(customer._id, '15m', '7d');
+    const { accessToken, refreshToken } = jwt.generateTokens(
+      customer._id,
+      '15m',
+      '7d'
+    );
 
-    customer.refreshToken = refreshToken;
-    await customer.save();
+    // ← update only the refreshToken, no schema validation
+    await Customer.updateOne(
+      { _id: customer._id },
+      { $set: { refreshToken } }
+    );
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({
-      message: 'Login successful!',
-      token: accessToken
-    });
-
+    res.status(200).json({ message: 'Login successful!', token: accessToken });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).send('Server error');
   }
 });
 
+ 
 // ====================== REFRESH ======================
  
 router.post('/refresh', async (req, res) => {
@@ -106,7 +106,7 @@ router.post('/refresh', async (req, res) => {
     const customer = await Customer.findById(decoded.userId);
     if (customer) {
       customer.refreshToken = newRefreshToken;
-      await customer.save();
+      await customer.save({ validateBeforeSave: false });
     }
 
     res.cookie('refreshToken', newRefreshToken, {
