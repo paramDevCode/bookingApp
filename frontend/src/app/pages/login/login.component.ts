@@ -25,7 +25,14 @@ export class LoginComponent {
     private authService: AuthService,
     private toastService: ToastService
   ) {}
+  ngOnInit(): void {
+    const token = this.authService.getAccessToken();
 
+    if (token) {
+      // If already logged in, redirect
+      this.router.navigate(['/orders']);
+    }
+  }
   onLogin() {
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();

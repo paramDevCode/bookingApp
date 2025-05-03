@@ -65,10 +65,15 @@ export class AuthService {
     // Also, backend should clear refresh token cookie
     this.router.navigate(['/login']);
   }
-
+  
   getAccessToken(): string | null {
+    if (!this.accessToken) {
+      this.accessToken = this.tokenStorage.getToken();
+    }
     return this.accessToken;
   }
+  
+  
 
   refreshToken(): Observable<{ token: string }> {
     if (this.isRefreshing) {
