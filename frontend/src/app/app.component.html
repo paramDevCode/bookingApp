@@ -1,3 +1,21 @@
 
-<app-toast></app-toast>
-<router-outlet></router-outlet>
+<div class="fixed bottom-4 left-4 z-[9999]">
+  <app-toast></app-toast>
+</div>
+<ng-container *ngIf="!(authService.isLoading$ | async); else loading">
+  <app-top-bar (toggleSidebar)="sidebarOpen = !sidebarOpen"></app-top-bar>
+  <app-sidebar [open]="sidebarOpen"></app-sidebar>
+
+  <!-- The actual app content appears once loading is false -->
+  <div class="pt-12 pb-16">  <!-- pad for top & bottom bars -->
+    <router-outlet></router-outlet>
+  </div>
+</ng-container>
+<app-bottom-nav></app-bottom-nav>
+
+<ng-template #loading>
+  <!-- This template will be displayed if isLoading$ is true -->
+  <div class="fixed inset-0 flex items-center justify-center bg-white z-30">
+    <div class="loader"></div>
+  </div>
+</ng-template>

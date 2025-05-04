@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { BehaviorSubject, Observable, Subject, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, pipe, Subject, throwError } from 'rxjs';
+import { catchError, delay, finalize, map, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { TokenStorageService } from '../../utils/token-storage.service'; // Adjust path as needed
 
@@ -11,6 +11,8 @@ export class AuthService {
   private accessToken: string | null = null;
   private isRefreshing = false;
   private tokenRefreshed = new Subject<{ token: string }>();
+  private isLoadingSubject = new BehaviorSubject<boolean>(true);
+  isLoading$ = this.isLoadingSubject.asObservable(); // Optional: for components to subscribe
 
   constructor(
     private http: HttpClient,
@@ -73,7 +75,17 @@ export class AuthService {
     return this.accessToken;
   }
   
+  initAuth(): Observable<void> {
+    return of(this.tokenStorage.getToken()).pipe(
+      tap(token => {
+        this.accessToken = token;
+        this.isLoadingSubject.next(false);
+      }),
+      map(() => void 0) // 👈 This converts the observable to type Observable<void>
+    );
+  }
   
+ 
 
   refreshToken(): Observable<{ token: string }> {
     if (this.isRefreshing) {

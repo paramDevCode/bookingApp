@@ -1,0 +1,11 @@
+<!-- sidebar.component.html -->
+<div 
+  class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform z-40"
+  [class.translate-x-0]="open"
+  [class.-translate-x-full]="!open">
+  <nav class="mt-12">
+    <a class="block px-4 py-2 hover:bg-gray-100" routerLink="/orders">Orders</a>
+    <a class="block px-4 py-2 hover:bg-gray-100" routerLink="/profile">Profile</a>
+    <a class="block px-4 py-2 hover:bg-gray-100" routerLink="/settings">Settings</a>
+  </nav>
+</div>
