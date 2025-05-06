@@ -75,6 +75,18 @@ export class AuthService {
     return this.accessToken;
   }
   
+  saveUserArea(userArea:string):void{
+    if(!environment.production && typeof window !== 'undefined'){
+      localStorage.setItem('userarea', userArea)
+    }
+  }
+  getUserArea():string | null{
+    if(!environment.production && typeof window !== 'undefined'){
+      return localStorage.getItem('userarea')
+    }
+    return null
+  }
+
   initAuth(): Observable<void> {
     return of(this.tokenStorage.getToken()).pipe(
       tap(token => {

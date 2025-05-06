@@ -1,17 +1,44 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './pages/login/login.component';
-import { OrdersComponent } from './pages/orders/orders.component';
 import { authGuard } from './core/guards/auth.guard';
-import { RegisterComponent } from './pages/register/register.component';
-import { LandingComponent } from './pages/landing/landing.component';
- export const routes: Routes = [
-    { path: '', component: LandingComponent },
-    {path:'', redirectTo:'landing', pathMatch:'full'},
-    { path: 'landing', component: LandingComponent },
 
-    { path: 'login', component: LoginComponent },
-    { path: 'register', component: RegisterComponent },  // Add register route
+export const routes: Routes = [
+  // Default redirect to /landing
+  { path: '', redirectTo: 'landing', pathMatch: 'full' },
 
-     { path: 'orders', component: OrdersComponent, canActivate:[authGuard] },
+  // Landing Page (Area Selection)
+  {
+    path: 'landing',
+    loadComponent: () => import('./pages/landing/landing.component').then(m => m.LandingComponent)
+  },
+
+  // Login Page (Guarded to check if area selected)
+  {
+    path: 'login',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+  },
+
+  // Register Page (can add guard if needed)
+  {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent)
+  },
+
+  // Orders Page (Protected for logged-in users)
+  {
+    path: 'orders',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/orders/orders.component').then(m => m.OrdersComponent)
+  },
+
+  // Alias path to match redirect in auth guard
+  {
+    path: 'select-area',
+    redirectTo: 'landing',
+    pathMatch: 'full'
+  },
+  {
+   path: '**',
+   redirectTo: 'landing'
+ }
 ];
-

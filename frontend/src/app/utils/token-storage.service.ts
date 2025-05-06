@@ -14,6 +14,8 @@ export class TokenStorageService {
     }
   }
 
+ 
+
   getToken(): string | null {
     if (!environment.production && typeof window !== 'undefined') {
       return localStorage.getItem('token');

@@ -1,18 +1,30 @@
 <header class="fixed top-0 left-0 w-full h-12 bg-white shadow flex items-center justify-between px-4 z-50">
-    <!-- Hamburger menu on the left -->
-    <button (click)="toggleSidebar.emit()" class="p-2">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <!-- Hamburger menu on the left -->
+  <button (click)="toggleSidebar.emit()">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+
+  <!-- Centered title -->
+  <div class="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold">
+    Orders
+  </div>
+
+  <!-- Right icons: notification and profile -->
+  <div class="flex items-center space-x-4">
+    <!-- Notification Icon -->
+    <button class="p-1">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"/>
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 00-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
       </svg>
     </button>
-  
-    <!-- Centered title using absolute -->
-    <div class="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold">
-      Profile
-    </div>
-  
-    <!-- Invisible placeholder for balance -->
-    <div class="w-6 h-6"></div>
-  </header>
-  
+
+    <!-- Profile Picture -->
+    <button (click)="goToProfile()" class="w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+      <img src="assets/user.png" alt="Profile" class="w-full h-full object-cover"/>
+    </button>
+  </div>
+</header>

@@ -1,1 +1,58 @@
-<p>orders works!</p>
+<div class="p-4 bg-gray-50 min-h-screen">
+  <!-- Tagline -->
+  <div class="bg-gradient-to-r from-purple-200 via-pink-100 to-rose-200 p-6 rounded-xl mb-6 text-center shadow">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-2">✨ Book Your Stitching Service with Ease!</h1>
+    <p class="text-sm text-gray-600">We pick up & deliver—no stepping out required.</p>
+  </div>
+
+  <!-- Booking Form -->
+  <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+    <!-- Service Selection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Select Stitching Service</label>
+      <select [(ngModel)]="selectedService" (change)="updatePrice()" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-300">
+        <option value="" disabled>Select service</option>
+        <option value="alteration">Alteration</option>
+        <option value="blouse-with-lining">Blouse Stitching - With Lining</option>
+        <option value="blouse-without-lining">Blouse Stitching - Without Lining</option>
+        <option value="falls">Falls Stitching</option>
+        <option value="pattu">Pattu Pavadai</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">
+        * Blouse with lining includes extra inner fabric; without lining is a single layer.
+      </p>
+    </div>
+
+    <!-- Image Upload -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Upload Reference Image</label>
+      <input type="file" accept="image/*" (change)="onFileSelected($event)" class="block w-full text-sm text-gray-600" />
+    </div>
+
+    <!-- Notes -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Notes / Instructions</label>
+      <textarea [(ngModel)]="notes" rows="3" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-300" placeholder="E.g. add lace on sleeves"></textarea>
+    </div>
+
+    <!-- Optional Alternate Contact -->
+    <div class="pt-2 border-t">
+      <p class="text-sm font-semibold text-gray-700 mb-2">Alternate Contact for Delivery (Optional)</p>
+      <input [(ngModel)]="alternateName" placeholder="Alternate Name" class="w-full mb-2 p-3 border rounded-md" />
+      <input [(ngModel)]="alternatePhone" placeholder="Alternate Phone" class="w-full p-3 border rounded-md" />
+    </div>
+
+    <!-- Estimated Price -->
+    <div *ngIf="estimatedPrice !== null" class="text-right text-lg font-semibold text-purple-700">
+      Est. Price: ₹{{ estimatedPrice }}
+    </div>
+
+    <!-- Continue Button -->
+    <button 
+      class="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 disabled:opacity-50"
+      [disabled]="!selectedService"
+      (click)="bookService()">
+      Continue
+    </button>
+  </div>
+</div>
