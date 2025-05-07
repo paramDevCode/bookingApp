@@ -9,25 +9,34 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   const token = authService.getAccessToken();
   const userArea = authService.getUserArea();
+  const url = state.url;
 
-  // ✅ If user has a valid token, allow access to any route
-  if (token) {
-    return true;
+  console.log('Guard check → Token:', token, 'Area:', userArea, 'State URL:', url);
+
+  // ⛔ No area selected → redirect to area selection
+  if (!userArea) {
+    console.log('❌ No area selected → redirect to /select-area');
+    return router.createUrlTree(['/select-area'], { queryParams: { returnUrl: url } });
   }
 
-  // ✅ If trying to access the login page
-  if (state.url === '/login') {
-    // ❌ First-time user with no selected area → redirect to area selection
-    if (!userArea) {
-      router.navigate(['/select-area'], { queryParams: { returnUrl: state.url } });
-      return false;
+  // ⛔ No token yet → allow register and login only
+  if (!token) {
+    if (url === '/register' || url === '/login') {
+      console.log('✅ Area selected & no token → allow register/login');
+      return true;
     }
 
-    // ✅ Area is selected → allow login
-    return true;
+    console.log('❌ No token → redirect to /login');
+    return router.createUrlTree(['/login']);
   }
 
-  // ❌ No token and not accessing /login → redirect to login
-  router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-  return false;
+  // ✅ Token present → block access to register/login
+  if (url === '/register' || url === '/login') {
+    console.log('✅ Already logged in → redirect to /orders');
+    return router.createUrlTree(['/orders']);
+  }
+
+  // ✅ Authenticated and area selected
+  console.log('✅ Authenticated → allow access');
+  return true;
 };

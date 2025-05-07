@@ -21,6 +21,7 @@ export const routes: Routes = [
   // Register Page (can add guard if needed)
   {
     path: 'register',
+    canActivate: [authGuard],
     loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent)
   },
 

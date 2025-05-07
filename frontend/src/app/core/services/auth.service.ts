@@ -77,12 +77,12 @@ export class AuthService {
   
   saveUserArea(userArea:string):void{
     if(!environment.production && typeof window !== 'undefined'){
-      localStorage.setItem('userarea', userArea)
+      localStorage.setItem('userArea', userArea)
     }
   }
   getUserArea():string | null{
     if(!environment.production && typeof window !== 'undefined'){
-      return localStorage.getItem('userarea')
+      return localStorage.getItem('userArea')
     }
     return null
   }
