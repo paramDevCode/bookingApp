@@ -15,8 +15,8 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   // ⛔ No area selected → redirect to area selection
   if (!userArea) {
-    console.log('❌ No area selected → redirect to /select-area');
-    return router.createUrlTree(['/select-area'], { queryParams: { returnUrl: url } });
+    console.log('❌ No area selected → redirect to /landing');
+    return router.createUrlTree(['/landing'], { queryParams: { returnUrl: url } });
   }
 
   // ⛔ No token yet → allow register and login only

@@ -32,14 +32,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/orders/orders.component').then(m => m.OrdersComponent)
   },
 
-  // Alias path to match redirect in auth guard
   {
-    path: 'select-area',
-    redirectTo: 'landing',
-    pathMatch: 'full'
-  },
-  {
-   path: '**',
-   redirectTo: 'landing'
- }
+    path:'**',
+    loadComponent:()=> import('./pages/not-found/not-found.component').then(m=> m.NotFoundComponent)
+  }
+
+  
 ];
