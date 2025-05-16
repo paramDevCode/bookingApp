@@ -1,36 +1,23 @@
 const mongoose = require('mongoose');
 
-// Define Order Schema
 const orderSchema = new mongoose.Schema({
-  customerName: {
-    type: String,
-    required: true
-  },
-  contactNumber: {
-    type: String,
-    required: true
-  },
-  orderDate: {
-    type: Date,
-    default: Date.now
-  },
+  service: { type: String, required: true },
+  pickupLatitude: Number,
+  pickupLongitude: Number,
+  pickupAddress: { type: String, required: true },
+  pickupDate: { type: String, required: true },
+  pickupTime: { type: String, required: true },
+  notes: String,
+  imageUrls: [String],
   status: {
     type: String,
     enum: ['pending', 'completed', 'canceled'],
     default: 'pending'
   },
-  measurements: {
-    chest: Number,
-    waist: Number,
-    hips: Number
-  },
-  items: [{
-    name: String,
-    quantity: Number
-  }]
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// Create a model
-const Order = mongoose.model('Order', orderSchema);
-
-module.exports = Order;
+module.exports = mongoose.model('Order', orderSchema);
