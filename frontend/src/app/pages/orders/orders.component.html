@@ -1,58 +1,114 @@
-<div class="p-4 bg-gray-50 min-h-screen">
+<form [formGroup]="orderForm" (ngSubmit)="submitOrder()" class="space-y-4 p-4 bg-gray-50 min-h-screen">
+
   <!-- Tagline -->
-  <div class="bg-gradient-to-r from-purple-200 via-pink-100 to-rose-200 p-6 rounded-xl mb-6 text-center shadow">
-    <h1 class="text-4xl font-extrabold text-gray-800 mb-2">✨ Book Your Stitching Service with Ease!</h1>
+  <div class="bg-gradient-to-r from-purple-200 via-pink-100 to-rose-200 p-6 rounded-xl text-center shadow">
+    <h1 class="text-3xl font-extrabold text-gray-800 mb-2">✨ Book Your Stitching Service with Ease!</h1>
     <p class="text-sm text-gray-600">We pick up & deliver—no stepping out required.</p>
   </div>
 
-  <!-- Booking Form -->
-  <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
-    <!-- Service Selection -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Select Stitching Service</label>
-      <select [(ngModel)]="selectedService" (change)="updatePrice()" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-300">
-        <option value="" disabled>Select service</option>
-        <option value="alteration">Alteration</option>
-        <option value="blouse-with-lining">Blouse Stitching - With Lining</option>
-        <option value="blouse-without-lining">Blouse Stitching - Without Lining</option>
-        <option value="falls">Falls Stitching</option>
-        <option value="pattu">Pattu Pavadai</option>
-      </select>
-      <p class="text-xs text-gray-500 mt-1">
-        * Blouse with lining includes extra inner fabric; without lining is a single layer.
-      </p>
+  <!-- Service Type -->
+  <label>
+    <span>Service Type <span class="text-red-600">*</span></span>
+    <select formControlName="service" class="block w-full p-2 border rounded" required>
+      <option value="">-- Select Service --</option>
+      <option value="alteration">Alteration</option>
+      <option value="blouse-lining">Blouse with Lining</option>
+      <option value="blouse-no-lining">Blouse without Lining</option>
+      <option value="falls">Falls</option>
+      <option value="pattu-pavadai">Pattu Pavadai</option>
+    </select>
+    <div *ngIf="orderForm.get('service')?.invalid && orderForm.get('service')?.touched" class="text-red-600 text-sm">
+      Please select a service type.
     </div>
+  </label>
 
-    <!-- Image Upload -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Upload Reference Image</label>
-      <input type="file" accept="image/*" (change)="onFileSelected($event)" class="block w-full text-sm text-gray-600" />
+  <!-- Hidden Latitude & Longitude -->
+  <input type="hidden" formControlName="pickupLatitude" />
+  <input type="hidden" formControlName="pickupLongitude" />
+
+  <!-- Location Messages -->
+  <div *ngIf="!locationError" class="p-2 bg-green-100 rounded text-green-700">
+    Your pickup location has been detected automatically.
+  </div>
+  <div *ngIf="locationError" class="p-2 bg-yellow-100 rounded text-yellow-700">
+    Unable to detect location. Please refresh or enter your pickup address manually.
+  </div>
+
+  <!-- Refresh Location Button -->
+  <div class="flex justify-end">
+    <button type="button" (click)="getLocation()" class="text-sm text-blue-600 underline">📍 Refresh Location</button>
+  </div>
+
+  <!-- Pickup Address -->
+  <label>
+    <span>Pickup Address <span class="text-red-600">*</span></span>
+    <input
+      type="text"
+      formControlName="pickupAddress"
+      placeholder="Enter your pickup address"
+      class="block w-full p-2 border rounded"
+      [required]="!!locationError"
+    />
+    <div *ngIf="orderForm.get('pickupAddress')?.invalid && orderForm.get('pickupAddress')?.touched" class="text-red-600 text-sm">
+      Pickup address is required.
     </div>
+  </label>
 
-    <!-- Notes -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Notes / Instructions</label>
-      <textarea [(ngModel)]="notes" rows="3" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-purple-300" placeholder="E.g. add lace on sleeves"></textarea>
+  <!-- Pickup Date -->
+  <label>
+    <span>Pickup Date <span class="text-red-600">*</span></span>
+    <input type="date" formControlName="pickupDate" class="block w-full p-2 border rounded" required />
+    <div *ngIf="orderForm.get('pickupDate')?.invalid && orderForm.get('pickupDate')?.touched" class="text-red-600 text-sm">
+      Please select a pickup date.
     </div>
+  </label>
 
-    <!-- Optional Alternate Contact -->
-    <div class="pt-2 border-t">
-      <p class="text-sm font-semibold text-gray-700 mb-2">Alternate Contact for Delivery (Optional)</p>
-      <input [(ngModel)]="alternateName" placeholder="Alternate Name" class="w-full mb-2 p-3 border rounded-md" />
-      <input [(ngModel)]="alternatePhone" placeholder="Alternate Phone" class="w-full p-3 border rounded-md" />
+  <!-- Pickup Time -->
+  <label>
+    <span>Pickup Time <span class="text-red-600">*</span></span>
+    <input type="time" formControlName="pickupTime" class="block w-full p-2 border rounded" required />
+    <div *ngIf="orderForm.get('pickupTime')?.invalid && orderForm.get('pickupTime')?.touched" class="text-red-600 text-sm">
+      Please select a pickup time.
     </div>
+  </label>
 
-    <!-- Estimated Price -->
-    <div *ngIf="estimatedPrice !== null" class="text-right text-lg font-semibold text-purple-700">
-      Est. Price: ₹{{ estimatedPrice }}
-    </div>
+  <!-- Additional Notes -->
+  <label>
+    <span>Additional Notes</span>
+    <textarea formControlName="notes" rows="3" class="block w-full p-2 border rounded" placeholder="Any instructions?"></textarea>
+  </label>
 
-    <!-- Continue Button -->
+  <!-- Upload Images -->
+  <label>
+    <span>Upload Images (Max 4)</span>
+    <input
+      type="file"
+      (change)="onFileSelected($event)"
+      multiple
+      accept="image/*"
+      class="block w-full p-2 border rounded"
+    />
+  </label>
+
+   <!-- Preview Images -->
+<div class="flex flex-wrap gap-2 mt-2">
+  <div *ngFor="let img of uploadedImageUrls; let i = index" class="relative w-20 h-20">
+    <img [src]="imageBaseUrl + img" class="w-full h-full object-cover rounded border" />
+
     <button 
-      class="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 disabled:opacity-50"
-      [disabled]="!selectedService"
-      (click)="bookService()">
-      Continue
+      (click)="removeImage(i)" 
+      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow">
+      ✕
     </button>
   </div>
 </div>
+
+
+  <!-- Submit Button -->
+  <div class="text-center">
+    <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded disabled:opacity-50" >
+      Submit Order
+    </button>
+  </div>
+
+</form>

@@ -1,61 +1,174 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { UploadService } from '../../core/services/upload.service';
+import { OrderService, Order } from '../../core/services/order.service';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { IMAGE_BASE_URL } from '../../constants';
+import { ToastService } from '../../core/services/toast.service';  
 
 @Component({
   selector: 'app-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './orders.component.html',
-  styleUrl: './orders.component.scss'
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './orders.component.html'
 })
-export class OrdersComponent {
-  customerName = 'Anjali';
-  selectedService = '';
-  notes = '';
-  alternateName = '';
-  alternatePhone = '';
-  estimatedPrice: number | null = null;
-  selectedFile: File | null = null;
+export class OrdersComponent implements OnInit {
+  imageBaseUrl = IMAGE_BASE_URL;
 
-  constructor(private router: Router) {}
+  orderForm!: FormGroup;
+  locationError = false;
+  uploadedImageUrls: string[] = [];
+  selectedFiles: File[] = [];
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.selectedFile = input.files?.[0] ?? null;
+  submitting = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private uploadService: UploadService,
+    private orderService: OrderService,
+    private toastService: ToastService
+  ) {}
+
+  ngOnInit(): void {
+    this.orderForm = this.fb.group({
+      service: ['', Validators.required],
+      pickupLatitude: [''],
+      pickupLongitude: [''],
+      pickupAddress: ['', Validators.required],
+      pickupDate: ['', Validators.required],
+      pickupTime: ['', Validators.required],
+      notes: [''],
+      images: [[]]
+    });
+
+    this.getLocation();
   }
 
-  updatePrice() {
-    this.estimatedPrice = this.calculatePrice();
-  }
-
-  calculatePrice(): number {
-    switch (this.selectedService) {
-      case 'alteration': return 200;
-      case 'blouse-with-lining': return 500;
-      case 'blouse-without-lining': return 400;
-      case 'falls': return 150;
-      case 'pattu': return 800;
-      default: return 0;
+  getLocation(): void {
+    if (!navigator.geolocation) {
+      this.locationError = true;
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        this.orderForm.patchValue({
+          pickupLatitude: lat,
+          pickupLongitude: lng
+        });
+
+        this.reverseGeocode(lat, lng);
+      },
+      () => {
+        this.locationError = true;
+      }
+    );
   }
 
-  bookService() {
-    this.estimatedPrice = this.calculatePrice();
-    const orderDetails = {
-      customerName: this.customerName,
-      service: this.selectedService,
-      notes: this.notes,
-      alternateName: this.alternateName,
-      alternatePhone: this.alternatePhone,
-      file: this.selectedFile,
-      price: this.estimatedPrice
+  reverseGeocode(lat: number, lng: number): void {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+      .then(res => res.json())
+      .then(data => {
+        const address = data.display_name || '';
+        this.orderForm.patchValue({
+          pickupAddress: address
+        });
+      })
+      .catch(() => {
+        this.locationError = true;
+      });
+  }
+
+  refreshLocation(): void {
+    this.getLocation();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+
+    const filesArray = Array.from(input.files).slice(0, 4);
+    this.selectedFiles = filesArray;
+
+    this.uploadService.uploadImages(filesArray).subscribe({
+      next: response => {
+        const newFilenames = response.files.map(file => file.filename);
+        this.uploadedImageUrls = [...this.uploadedImageUrls, ...newFilenames];
+        this.toastService.showToast({
+          message: 'Images uploaded successfully!',
+          type: 'success'
+        });
+      },
+      error: err => {
+        console.error('Upload failed', err);
+        this.toastService.showToast({
+          message: 'Image upload failed. Please try again.',
+          type: 'error'
+        });
+      }
+    });
+  }
+
+  removeImage(index: number): void {
+    const filename = this.uploadedImageUrls[index];
+    if (!filename) return;
+
+    this.uploadService.deleteImage(filename).subscribe({
+      next: () => {
+        this.uploadedImageUrls.splice(index, 1);
+        this.toastService.showToast({
+          message: 'Image removed successfully.',
+          type: 'success'
+        });
+      },
+      error: err => {
+        console.error('Failed to delete image:', err);
+        this.toastService.showToast({
+          message: 'Failed to remove image.',
+          type: 'error'
+        });
+      }
+    });
+  }
+
+  submitOrder(): void {
+    if (this.orderForm.invalid) {
+      this.toastService.showToast({
+        message: 'Please fill in all required fields.',
+        type: 'error'
+      });
+      this.orderForm.markAllAsTouched();
+      return;
+    }
+
+    this.submitting = true;
+
+    const orderData: Order = {
+      ...this.orderForm.value,
+      imageUrls: this.uploadedImageUrls,
+      status: 'pending'
     };
 
-    console.log(orderDetails);
-
-    // Optional: Navigate or show confirmation message
-    // this.router.navigate(['/order-confirmation'], { state: orderDetails });
+    this.orderService.createOrder(orderData).subscribe({
+      next: () => {
+        this.toastService.showToast({
+          message: 'Order submitted successfully!',
+          type: 'success'
+        });
+        this.orderForm.reset();
+        this.uploadedImageUrls = [];
+        this.submitting = false;
+      },
+      error: () => {
+        this.toastService.showToast({
+          message: 'Failed to submit order. Please try again.',
+          type: 'error'
+        });
+        this.submitting = false;
+      }
+    });
   }
 }
