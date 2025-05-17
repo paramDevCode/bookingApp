@@ -5,6 +5,9 @@ import { OrderService, Order } from '../../core/services/order.service';
 import { CommonModule } from '@angular/common';
 import { IMAGE_BASE_URL } from '../../constants';
 import { ToastService } from '../../core/services/toast.service';  
+import { AuthService } from '../../core/services/auth.service';
+
+import {Booking} from '../../models/booking';
 
 @Component({
   selector: 'app-orders',
@@ -26,14 +29,22 @@ export class OrdersComponent implements OnInit {
     private fb: FormBuilder,
     private uploadService: UploadService,
     private orderService: OrderService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+this.orderService.getOrderById('6828455429ef80a7fce359b2')
+  .subscribe(order => {
+    console.log('Fetched Order:', order);
+  });
+
+    
     this.orderForm = this.fb.group({
       service: ['', Validators.required],
       pickupLatitude: [''],
       pickupLongitude: [''],
+      mobile:[''],
       pickupAddress: ['', Validators.required],
       pickupDate: ['', Validators.required],
       pickupTime: ['', Validators.required],
@@ -42,6 +53,7 @@ export class OrdersComponent implements OnInit {
     });
 
     this.getLocation();
+    
   }
 
   getLocation(): void {
@@ -134,7 +146,7 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  submitOrder(): void {
+ submitOrder(): void {
     if (this.orderForm.invalid) {
       this.toastService.showToast({
         message: 'Please fill in all required fields.',
@@ -144,12 +156,22 @@ export class OrdersComponent implements OnInit {
       return;
     }
 
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      this.toastService.showToast({
+        message: 'User is not logged in.',
+        type: 'error'
+      });
+      return;
+    }
+
     this.submitting = true;
 
     const orderData: Order = {
       ...this.orderForm.value,
       imageUrls: this.uploadedImageUrls,
-      status: 'pending'
+      status: 'pending',
+      userId  // add userId here!
     };
 
     this.orderService.createOrder(orderData).subscribe({
@@ -171,4 +193,5 @@ export class OrdersComponent implements OnInit {
       }
     });
   }
+
 }

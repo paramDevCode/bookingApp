@@ -32,6 +32,8 @@ export class LoginComponent {
       // If already logged in, redirect
       this.router.navigate(['/orders']);
     }
+        console.log('userId ',this.authService.getUserId())
+
   }
   onLogin() {
     if (this.loginForm.invalid) {

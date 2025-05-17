@@ -63,6 +63,14 @@
     </div>
   </label>
 
+<label>
+    <span>Contact Number <span class="text-red-600">*</span></span>
+    <input type="tel" formControlName="mobile" class="block w-full p-2 border rounded" required />
+    <div *ngIf="orderForm.get('mobile')?.invalid && orderForm.get('mobile')?.touched" class="text-red-600 text-sm">
+      Please type your mobile number
+    </div>
+  </label>
+
   <!-- Pickup Time -->
   <label>
     <span>Pickup Time <span class="text-red-600">*</span></span>
