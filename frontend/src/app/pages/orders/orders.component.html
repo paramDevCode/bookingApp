@@ -1,122 +1,127 @@
-<form [formGroup]="orderForm" (ngSubmit)="submitOrder()" class="space-y-4 p-4 bg-gray-50 min-h-screen">
+<div class="max-w-2xl mx-auto p-4">
+  <div class="bg-white shadow-lg rounded-xl p-6 space-y-6">
 
-  <!-- Tagline -->
-  <div class="bg-gradient-to-r from-purple-200 via-pink-100 to-rose-200 p-6 rounded-xl text-center shadow">
-    <h1 class="text-3xl font-extrabold text-gray-800 mb-2">✨ Book Your Stitching Service with Ease!</h1>
-    <p class="text-sm text-gray-600">We pick up & deliver—no stepping out required.</p>
-  </div>
+    <form [formGroup]="orderForm" (ngSubmit)="submitOrder()" class="space-y-6">
 
-  <!-- Service Type -->
-  <label>
-    <span>Service Type <span class="text-red-600">*</span></span>
-    <select formControlName="service" class="block w-full p-2 border rounded" required>
-      <option value="">-- Select Service --</option>
-      <option value="alteration">Alteration</option>
-      <option value="blouse-lining">Blouse with Lining</option>
-      <option value="blouse-no-lining">Blouse without Lining</option>
-      <option value="falls">Falls</option>
-      <option value="pattu-pavadai">Pattu Pavadai</option>
-    </select>
-    <div *ngIf="orderForm.get('service')?.invalid && orderForm.get('service')?.touched" class="text-red-600 text-sm">
-      Please select a service type.
-    </div>
-  </label>
+      <!-- Tagline -->
+      <div class="bg-gradient-to-r from-purple-200 via-pink-100 to-rose-200 p-6 rounded-xl text-center shadow">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-2">✨ Book Your Stitching Service with Ease!</h1>
+        <p class="text-sm text-gray-600">We pick up & deliver—no stepping out required.</p>
+      </div>
 
-  <!-- Hidden Latitude & Longitude -->
-  <input type="hidden" formControlName="pickupLatitude" />
-  <input type="hidden" formControlName="pickupLongitude" />
+      <!-- Service Type -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Service Type <span class="text-red-600">*</span></span>
+        <select formControlName="service" class="block w-full p-2 border rounded" required>
+          <option value="">-- Select Service --</option>
+          <option value="alteration">Alteration</option>
+          <option value="blouse-lining">Blouse with Lining</option>
+          <option value="blouse-no-lining">Blouse without Lining</option>
+          <option value="falls">Falls</option>
+          <option value="pattu-pavadai">Pattu Pavadai</option>
+        </select>
+        <div *ngIf="orderForm.get('service')?.invalid && orderForm.get('service')?.touched" class="text-red-600 text-sm">
+          Please select a service type.
+        </div>
+      </label>
 
-  <!-- Location Messages -->
-  <div *ngIf="!locationError" class="p-2 bg-green-100 rounded text-green-700">
-    Your pickup location has been detected automatically.
-  </div>
-  <div *ngIf="locationError" class="p-2 bg-yellow-100 rounded text-yellow-700">
-    Unable to detect location. Please refresh or enter your pickup address manually.
-  </div>
+       <!-- Pickup Address -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Pickup Address <span class="text-red-600">*</span></span>
+        <input
+          type="text"
+          formControlName="pickupAddress"
+          placeholder="Enter your pickup address"
+          class="block w-full p-2 border rounded"
+          [required]="!!locationError"
+        />
+        <div *ngIf="orderForm.get('pickupAddress')?.invalid && orderForm.get('pickupAddress')?.touched" class="text-red-600 text-sm">
+          Pickup address is required.
+        </div>
+      </label>
 
-  <!-- Refresh Location Button -->
-  <div class="flex justify-end">
-    <button type="button" (click)="getLocation()" class="text-sm text-blue-600 underline">📍 Refresh Location</button>
-  </div>
+      <!-- Hidden Latitude & Longitude -->
+      <input type="hidden" formControlName="pickupLatitude" />
+      <input type="hidden" formControlName="pickupLongitude" />
 
-  <!-- Pickup Address -->
-  <label>
-    <span>Pickup Address <span class="text-red-600">*</span></span>
-    <input
-      type="text"
-      formControlName="pickupAddress"
-      placeholder="Enter your pickup address"
-      class="block w-full p-2 border rounded"
-      [required]="!!locationError"
-    />
-    <div *ngIf="orderForm.get('pickupAddress')?.invalid && orderForm.get('pickupAddress')?.touched" class="text-red-600 text-sm">
-      Pickup address is required.
-    </div>
-  </label>
+      <!-- Location Message -->
+      <div *ngIf="!locationError" class="p-2 bg-green-100 rounded text-green-700">
+        Your pickup location has been detected automatically.
+      </div>
+      <div *ngIf="locationError" class="p-2 bg-yellow-100 rounded text-yellow-700">
+        Unable to detect location. Please refresh or enter your pickup address manually.
+      </div>
 
-  <!-- Pickup Date -->
-  <label>
-    <span>Pickup Date <span class="text-red-600">*</span></span>
-    <input type="date" formControlName="pickupDate" class="block w-full p-2 border rounded" required />
-    <div *ngIf="orderForm.get('pickupDate')?.invalid && orderForm.get('pickupDate')?.touched" class="text-red-600 text-sm">
-      Please select a pickup date.
-    </div>
-  </label>
+      <!-- Refresh Location -->
+      <div class="flex justify-end">
+        <button type="button" (click)="getLocation()" class="text-sm text-blue-600 underline">📍 Refresh Location</button>
+      </div>
 
-<label>
-    <span>Contact Number <span class="text-red-600">*</span></span>
-    <input type="tel" formControlName="mobile" class="block w-full p-2 border rounded" required />
-    <div *ngIf="orderForm.get('mobile')?.invalid && orderForm.get('mobile')?.touched" class="text-red-600 text-sm">
-      Please type your mobile number
-    </div>
-  </label>
+     
+      <!-- Pickup Date -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Pickup Date <span class="text-red-600">*</span></span>
+        <input type="date" formControlName="pickupDate" class="block w-full p-2 border rounded" required />
+        <div *ngIf="orderForm.get('pickupDate')?.invalid && orderForm.get('pickupDate')?.touched" class="text-red-600 text-sm">
+          Please select a pickup date.
+        </div>
+      </label>
 
-  <!-- Pickup Time -->
-  <label>
-    <span>Pickup Time <span class="text-red-600">*</span></span>
-    <input type="time" formControlName="pickupTime" class="block w-full p-2 border rounded" required />
-    <div *ngIf="orderForm.get('pickupTime')?.invalid && orderForm.get('pickupTime')?.touched" class="text-red-600 text-sm">
-      Please select a pickup time.
-    </div>
-  </label>
+      <!-- Contact Number -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Contact Number <span class="text-red-600">*</span></span>
+        <input type="tel" formControlName="mobile" class="block w-full p-2 border rounded" required />
+        <div *ngIf="orderForm.get('mobile')?.invalid && orderForm.get('mobile')?.touched" class="text-red-600 text-sm">
+          Please type your mobile number.
+        </div>
+      </label>
 
-  <!-- Additional Notes -->
-  <label>
-    <span>Additional Notes</span>
-    <textarea formControlName="notes" rows="3" class="block w-full p-2 border rounded" placeholder="Any instructions?"></textarea>
-  </label>
+      <!-- Pickup Time -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Pickup Time <span class="text-red-600">*</span></span>
+        <input type="time" formControlName="pickupTime" class="block w-full p-2 border rounded" required />
+        <div *ngIf="orderForm.get('pickupTime')?.invalid && orderForm.get('pickupTime')?.touched" class="text-red-600 text-sm">
+          Please select a pickup time.
+        </div>
+      </label>
 
-  <!-- Upload Images -->
-  <label>
-    <span>Upload Images (Max 4)</span>
-    <input
-      type="file"
-      (change)="onFileSelected($event)"
-      multiple
-      accept="image/*"
-      class="block w-full p-2 border rounded"
-    />
-  </label>
+      <!-- Notes -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Additional Notes</span>
+        <textarea formControlName="notes" rows="3" class="block w-full p-2 border rounded" placeholder="Any instructions?"></textarea>
+      </label>
 
-   <!-- Preview Images -->
-<div class="flex flex-wrap gap-2 mt-2">
-  <div *ngFor="let img of uploadedImageUrls; let i = index" class="relative w-20 h-20">
-    <img [src]="imageBaseUrl + img" class="w-full h-full object-cover rounded border" />
+      <!-- Upload Images -->
+      <label class="block">
+        <span class="block mb-1 font-medium text-gray-700">Upload Images (Max 4)</span>
+        <input
+          type="file"
+          (change)="onFileSelected($event)"
+          multiple
+          accept="image/*"
+          class="block w-full p-2 border rounded"
+        />
+      </label>
 
-    <button 
-      (click)="removeImage(i)" 
-      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow">
-      ✕
-    </button>
+      <!-- Preview Images -->
+      <div class="flex flex-wrap gap-2">
+        <div *ngFor="let img of uploadedImageUrls; let i = index" class="relative w-20 h-20">
+          <img [src]="imageBaseUrl + img" class="w-full h-full object-cover rounded border" />
+          <button 
+            (click)="removeImage(i)" 
+            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="text-center pt-2">
+        <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded disabled:opacity-50">
+          Submit Order
+        </button>
+      </div>
+
+    </form>
   </div>
 </div>
-
-
-  <!-- Submit Button -->
-  <div class="text-center">
-    <button type="submit" class="px-6 py-2 bg-purple-600 text-white rounded disabled:opacity-50" >
-      Submit Order
-    </button>
-  </div>
-
-</form>

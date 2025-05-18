@@ -6,6 +6,7 @@ export interface Booking {
   pickupAddress: string;
   pickupDate: string;        // could be Date or string (depending on your usage)
   pickupTime: string;
+  mobile?:string,
   notes?: string;
   imageUrls?: string[];
   status?: string;

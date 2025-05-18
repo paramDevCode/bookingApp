@@ -34,6 +34,8 @@ orders: Booking[] = [];
   }
 }
 
-
+goToOrderDetails(){
+  
+}
  
 }

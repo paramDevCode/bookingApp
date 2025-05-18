@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { title } from 'node:process';
  
 export const routes: Routes = [
   // Default redirect to /landing
@@ -29,12 +30,14 @@ export const routes: Routes = [
   {
     path: 'orders',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/orders/orders.component').then(m => m.OrdersComponent)
+    loadComponent: () => import('./pages/orders/orders.component').then(m => m.OrdersComponent),
+    data:{title:'Booking'}
   },
   {
     path: 'my-orders',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/my-orders/my-orders.component').then(m => m.MyOrdersComponent )
+    loadComponent: () => import('./pages/my-orders/my-orders.component').then(m => m.MyOrdersComponent ),
+     data:{title:'Orders'}
   },
 
   {
